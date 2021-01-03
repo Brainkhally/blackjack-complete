@@ -12,6 +12,9 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.HBox;
 import org.itstep.blackjack.Game;
 import org.itstep.blackjack.NoMoneyEnough;
+import org.itstep.blackjack.card.Card;
+import org.itstep.blackjack.event.GameEventListener;
+import org.itstep.ui.CardView;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -56,6 +59,7 @@ public class BlackjackController implements Initializable {
 
     public BlackjackController() {
         game = new Game();
+        game.addGameEventListener(new GameEventHandler());
     }
 
     @FXML
@@ -70,7 +74,7 @@ public class BlackjackController implements Initializable {
     }
 
     private int getBet() {
-        if(tfBet.getText().isEmpty()) {
+        if (tfBet.getText().isEmpty()) {
             return 0;
         }
         return Integer.parseInt(tfBet.getText());
@@ -113,5 +117,45 @@ public class BlackjackController implements Initializable {
         tfBet.disableProperty().bind(start);
 
         stop();
+    }
+
+    private class GameEventHandler implements GameEventListener {
+
+        @Override
+        public void gameStart() {
+            restart();
+        }
+
+        @Override
+        public void stand() {
+            stop();
+            CardView node = (CardView) hbDealerCards.getChildren().get(0);
+            node.setHide(false);
+        }
+
+        @Override
+        public void playerGetCard(Card card, int point) {
+            hbPlayerCards.getChildren().add(new CardView(card));
+            updatePlayerPoints(point);
+        }
+
+        @Override
+        public void dealerGetCard(Card card, int points) {
+            hbDealerCards.getChildren().add(new CardView(card));
+            updateDealerPoints(points);
+        }
+
+        @Override
+        public void playerSetBet(int amount) {
+
+        }
+
+        @Override
+        public void gameOver(String winner, int playerPoints, int dealerPoints) {
+            stand();
+            updatePlayerPoints(playerPoints);
+            updateDealerPoints(dealerPoints);
+            lblBlackJack.setText(winner + " WIN");
+        }
     }
 }
